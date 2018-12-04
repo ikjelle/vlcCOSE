@@ -1,5 +1,5 @@
 ------ Constants
--- BaseFolder constant, should only be set
+-- BaseFolder constant, should only be set once when activated
 BaseFolder = ""
 ------ Basic functions
  -- Print data in vlc console
