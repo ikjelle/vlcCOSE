@@ -1,9 +1,10 @@
 # vlcCOSE
-vlc extension for easy continueing series (only .mkv files so far)
+vlc extension for easy continuing series (only .mkv files so far)
+
+## Where do I put my file?
+See https://www.vlchelp.com/install-vlc-media-player-addon/ where to put the .lua file
 
 
-
-Put this file in your vlc/lua/extensions folder
 Only tested on linux kde neon (ubuntu 18.04)
 
-Still a few bugs and ugle code but enjoy if someone ever downloads it.
+Still a few bugs and ugly code, but enjoy if someone ever downloads it.
