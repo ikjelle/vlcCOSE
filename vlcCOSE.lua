@@ -242,7 +242,7 @@ end
 -- Save Current Playing Show
 function Config:SaveShow()
   self.Playing:Save()
-  info("Save Show which is being played")
+  info("Saving Show which is being played")
 end
 -- Save config file
 function Config:SaveConfig()
