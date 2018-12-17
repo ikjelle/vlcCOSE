@@ -12,7 +12,6 @@ function split(s, delimiter)
       i = 0
       for match in (s..delimiter):gmatch("(.-)"..delimiter) do
           result[i] = match
-          vlc.msg.info(match)
           i = i + 1
       end
     end
@@ -41,10 +40,9 @@ function getTxtConfigFiles(directory)
     local fread = f:read("*a")
      local splittedFiles = split(fread,"\n")
       txtFiles = returnFiles(splittedFiles, ".txt")
-      vlc.msg.info("end")
-      
+      info("Done getting config files")
   else
-      print("failed to read")
+      info("failed to read config files")
   end
   
   f:close()
@@ -59,7 +57,7 @@ function getFiles(directory)
      local splittedFiles = split(f:read("*a"),"\n")
       mkvFiles = returnFiles(splittedFiles, ".mkv")
   else
-      print("failed to read")
+      info("failed to read show config file")
   end
   
   f:close()
@@ -208,7 +206,7 @@ function Config:Read()
     local ShowName = ""
 
   -- check if dir excists so no error has to be given, learned standard c has not an check option so ill let it happen for now
-  print("making directory for home file, should fail after first time")
+  info("making directory for home file, should fail after first time")
   os.execute("mkdir " .. BaseFolder)
   
   -- check if files excists
@@ -257,7 +255,6 @@ end
 function Config:SetShows()  
   j = 1
   for i,v in pairs(getTxtConfigFiles(BaseFolder)) do
-    info(v)
     if(v ~= "COSECONFIG.txt")then
       self.Shows[j] = v
       j = j+1
@@ -309,6 +306,7 @@ end
 -- Open selected show
 function ReadSelected()
   Configuration:ChangeShows(Configuration.Shows[widgets[dialogWidgetIndex]:get_value()])
+  dialog:hide()
 end
 -- Play File declared in config
 function PlayLastPlayed()
