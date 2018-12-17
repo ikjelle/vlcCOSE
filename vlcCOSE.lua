@@ -1,5 +1,5 @@
 ------ Constants
--- BaseFolder constant, should only be set once when activated
+-- BaseFolder constant, should only be set
 BaseFolder = ""
 ------ Basic functions
  -- Print data in vlc console
@@ -318,6 +318,7 @@ end
 --
 function OpenLastPlayed()
   Configuration:PlayShow()
+  dialog:hide()
 end
 -- open startup dialog
 function openStartupDialog()
