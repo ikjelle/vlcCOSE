@@ -1,6 +1,7 @@
 ------ Constants
 -- BaseFolder constant, should only be set
 BaseFolder = ""
+Playing= false
 ------ Basic functions
  -- Print data in vlc console
 function info(s)
@@ -104,6 +105,7 @@ function Show:Open(File)
 end
 -- start the show
 function Show:PrepareAndPlay()
+  Playing = true
   local playlistTable = {}
   local videoTime = self.Time
   
@@ -156,7 +158,8 @@ end
 -- save show
 function Show:Save()
   -- If vlc is playing it will save new time and path
-  if(self.Playing ~= "") then
+  -- if first time saving dont get vlc playlist
+  if(Playing) then
     -- should work, but dont know for sure if table doesnt do weird stuff
     for i,v in ipairs(split(vlc.playlist.get( vlc.playlist.current() ).path,"/")) do
       videoPath = v
@@ -195,8 +198,13 @@ function Config:Open()
   config:Read()
   config:SetShows()
   
-  config.Playing = Show:Open(config.LastPlayed)
-  
+  if(file_exists(BaseFolder .. config.LastPlayed)) then
+    info("show excists")
+    config.Playing = Show:Open(config.LastPlayed)
+  else 
+    info("last show does not excists")
+    config.Playing = nil    
+  end
   info("Opened Config")
   
   return config
@@ -241,8 +249,10 @@ function Config:NewShow(name, path)
 end
 -- Save Current Playing Show
 function Config:SaveShow()
-  self.Playing:Save()
-  info("Saving Show which is being played")
+  if(self.Playing ~= nil) then
+    self.Playing:Save()
+    info("Saving Show which is being played")
+  end
 end
 -- Save config file
 function Config:SaveConfig()
