@@ -7,6 +7,7 @@ Playing= false
 function info(s)
   if s ~= null then vlc.msg.info("[vlcCOSE] "..s) else vlc.msg.info("[vlcCOSE] ".. "A value other than a string has been submitted") end
 end
+
 function split(s, delimiter)
     result = {};
     if (s ~= nil) then
@@ -41,7 +42,7 @@ function getTxtConfigFiles(directory)
     local fread = f:read("*a")
      local splittedFiles = split(fread,"\n")
       txtFiles = returnFiles(splittedFiles, ".txt")
-      info("Done getting config files")
+      info("Done getting config files, \n files found: " .. #txtFiles)
   else
       info("failed to read config files")
   end
@@ -91,20 +92,24 @@ end
 function Show:Open(File)
   local sh = {}
   setmetatable(sh,Show)
-
-  ShowLines = io.lines(BaseFolder .. File)
-  sh.ConfigFile = File
-  sh.Name = ShowLines(0)
-  sh.Path = ShowLines(1) 
-  sh.LastEpisode = ShowLines(2)
-  sh.Time = ShowLines(3)
-  sh.Playing = "" 
+  if file_exists(BaseFolder .. File) then
+    ShowLines = io.lines(BaseFolder .. File)
+    sh.ConfigFile = File
+    sh.Name = ShowLines(0)
+    sh.Path = ShowLines(1) 
+    sh.LastEpisode = ShowLines(2)
+    sh.Time = ShowLines(3)
+    sh.Playing = "" 
   
-  info("Opened Show: " .. sh.Name)
+    info("Opened Show: " .. sh.Name)
+  else
+    sh = nill
+  end
   return sh
 end
 -- start the show
 function Show:PrepareAndPlay()
+  
   Playing = true
   local playlistTable = {}
   local videoTime = self.Time
@@ -138,6 +143,9 @@ function Show:PrepareAndPlay()
 	vlc.playlist.random("off")
 
   local videoNotFoundYet = true
+  
+  local startVideoID = -1
+  
 	for i, item in pairs(vlc.playlist.get("playlist",false).children) do
     -- skip this code if video is found
     if (videoNotFoundYet == true) then     
@@ -149,8 +157,12 @@ function Show:PrepareAndPlay()
       end
     end
   end
-	vlc.playlist.gotoitem( startVideoID ) -- for vlc v2.1.4 rincewind on linux mint 17 -> also works on windows
-  info("Now Playing: " .. self.Name)
+  if startVideoID == -1 then 
+    info("Not Playing anything") 
+  else
+    vlc.playlist.gotoitem( startVideoID )
+    info("Now Playing: " .. self.Name)    
+  end
 end
 
 
@@ -164,6 +176,9 @@ function Show:Save()
     for i,v in ipairs(split(vlc.playlist.get( vlc.playlist.current() ).path,"/")) do
       videoPath = v
     end
+    -- TODO
+    -- if folder is not same dont save, so when opening video while cose is open no incorrect file will be displayed
+    
     
     self.LastEpisode = videoPath
     local videoTime = vlc.var.get(vlc.object.input(), "time") - 5
@@ -193,7 +208,7 @@ function Config:Open()
   
   config.LastPlayed = ""
   config.Shows = {}
-  config.ConfigFile = BaseFolder .. "COSECONFIG.txt"
+  config.ConfigFile = BaseFolder .. ".COSECONFIG.txt"
   
   config:Read()
   config:SetShows()
@@ -265,9 +280,15 @@ end
 function Config:SetShows()  
   j = 1
   for i,v in pairs(getTxtConfigFiles(BaseFolder)) do
-    if(v ~= "COSECONFIG.txt")then
-      self.Shows[j] = v
-      j = j+1
+    if(v ~= ".COSECONFIG.txt")then
+      info("opening: " .. v)
+      -- if folder dont exist dont show file name
+      tShow = Show:Open(v)
+      -- save temp show in list so doesnt have to be read twice
+      if(file_exists(tShow.Path)) then
+        self.Shows[j] = v
+        j = j+1
+        end
       end
   end
   info("Retrieved all shows")
@@ -364,10 +385,12 @@ function createInputForShow()
   Configuration:NewShow(name,path)
   dialog:hide()
 end
+
 ------ vlc functions
 function meta_changed()
   -- maybe add feature to skip openings and endings
   -- this seems to get called pretty often, I heard, dont know for sure
+  -- only gets called when starting the video/playlist
 end
 
 function input_changed()
@@ -382,6 +405,7 @@ end
 
 function close()
   -- Deactivate folder
+  vlc.deactivate();
 end
 
 function descriptor()
@@ -404,6 +428,5 @@ function activate()
 end
 
 function deactivate()
-  -- save show
-  Configuration:SaveShow()
+  -- code for when extension gets deactivated
 end
